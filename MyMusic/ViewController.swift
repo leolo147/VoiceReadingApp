@@ -13,6 +13,7 @@ import PDFKit
 import Speech
 import AVFoundation
 import Alamofire
+import CoreData
 
 struct loginResults: Decodable {
     var status : String
@@ -56,6 +57,8 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     var task : SFSpeechRecognitionTask!
     let speechSynthesizer = AVSpeechSynthesizer()
     var utterance = AVSpeechUtterance(string: "")
+    private var appDelegate = UIApplication.shared.delegate as! AppDelegate
+    private let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -73,7 +76,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let tapTwoTimeRecognizer = UITapGestureRecognizer(target: self, action: #selector(startSpeechRecognization(_:)))
         tapTwoTimeRecognizer.numberOfTapsRequired = 2
         table.addGestureRecognizer(tapTwoTimeRecognizer)
-//        getapi()
+        
+        showItems()
+            
         
         
         
@@ -98,7 +103,23 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         }
     }
 
-    func configureSongs() {
+    func showItems() {
+        
+        let request = NSFetchRequest<ReadingBook>(entityName: "ReadingBook" )
+        
+        do {
+            
+            let results = try context.fetch(request)
+            
+            print("results", results.count)
+    
+            for result in results {
+                print("book Name: \(result.bookName!), Author: \(result.bookAuthor!), content: \(result.bookContent!), remaining text:\(result.remainingText!)")
+            }
+            
+        }catch{
+            fatalError("Failed to fetch data: \(error)")
+        }
         
     }
 

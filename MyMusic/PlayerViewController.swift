@@ -7,6 +7,7 @@
 //
 
 import AVFoundation
+import CoreData
 import UIKit
 
 class PlayerViewController: UIViewController, AVSpeechSynthesizerDelegate,UIScrollViewDelegate {
@@ -20,6 +21,9 @@ class PlayerViewController: UIViewController, AVSpeechSynthesizerDelegate,UIScro
     var currentRange: NSRange = NSRange(location: 0, length: 0)
     var rate: Float = 0.3
     var spokenTextLengths: Int = 0
+    var remainingText : String.SubSequence!
+    private var appDelegate = UIApplication.shared.delegate as! AppDelegate
+    private let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     
     @IBOutlet var holder: UIView!
@@ -70,13 +74,34 @@ class PlayerViewController: UIViewController, AVSpeechSynthesizerDelegate,UIScro
     
     func configure() {
         // set up player
+        var bookContent = ""
         let song = songs[position]
-        albumImageView.text = song.bookContent
+//        albumImageView.text = song.bookContent
         
         
         //let urlString = Bundle.main.path(forResource: song.trackName, ofType: "mp3")
+        let request = ReadingBook.fetchRequest() as NSFetchRequest<ReadingBook>
         
-        utterance = AVSpeechUtterance(string: albumImageView.text ?? "")
+        let item_name = songs[position].name
+        request.predicate = NSPredicate(format: "bookName CONTAINS[cd] %@", item_name)
+        
+        do {
+            let fetch = try context.fetch(request)
+            
+            if (fetch.count > 0){
+                let product = fetch[0]
+                bookContent = product.remainingText!
+                appDelegate.saveContext()
+            }else{
+                bookContent = song.bookContent
+            }
+
+        } catch let error as NSError {
+            print("Could not fetch. \(error), \(error.userInfo)")
+        }
+        albumImageView.text = bookContent
+        
+        utterance = AVSpeechUtterance(string: bookContent)
         //utterance.voice = AVSpeechSynthesisVoice(language: "zh-HK")
         utterance.voice = AVSpeechSynthesisVoice(identifier: "com.apple.ttsbundle.Sin-Ji-compact")
         utterance.pitchMultiplier = 1+rate
@@ -221,6 +246,35 @@ class PlayerViewController: UIViewController, AVSpeechSynthesizerDelegate,UIScro
         }
     }
     
+    func addItems(remainingText:String) {
+        let request = ReadingBook.fetchRequest() as NSFetchRequest<ReadingBook>
+        
+        let item_name = songs[position].name
+        request.predicate = NSPredicate(format: "bookName CONTAINS[cd] %@", item_name)
+        
+        do {
+            let fetch = try context.fetch(request)
+            
+            if (fetch.count > 0){
+                let product = fetch[0]
+                product.remainingText = remainingText
+                appDelegate.saveContext()
+            }else{
+                print("0000000")
+                let item = NSEntityDescription.insertNewObject(forEntityName: "ReadingBook", into: context ) as! ReadingBook
+                item.bookName = songs[position].name
+                item.bookAuthor = songs[position].albumName
+                item.bookContent = songs[position].bookContent
+                item.remainingText = remainingText
+                appDelegate.saveContext()
+            }
+
+        } catch let error as NSError {
+            print("Could not fetch. \(error), \(error.userInfo)")
+        }
+        
+    }
+    
     @objc func didTapPlayPauseButton() {
         //utterance.voice = AVSpeechSynthesisVoice(identifier: "com.apple.ttsbundle.Ting-Ting-compact")
         if speechSynthesizer.isPaused == false{
@@ -289,6 +343,8 @@ class PlayerViewController: UIViewController, AVSpeechSynthesizerDelegate,UIScro
             player.stop()
         }
         speechSynthesizer.stopSpeaking(at: AVSpeechBoundary.immediate)
+        print("done")
+        addItems(remainingText: String(remainingText))
     }
     
     func setNavigationBar() {
@@ -312,7 +368,7 @@ class PlayerViewController: UIViewController, AVSpeechSynthesizerDelegate,UIScro
         albumImageView.font = .systemFont(ofSize: 40)
         currentRange = characterRange
         albumImageView.scrollRangeToVisible(rangeInTotalText)
-        let remainingText = utterance.speechString.dropFirst(characterRange.location)
+        remainingText = utterance.speechString.dropFirst(characterRange.location)
         print("remainingText", remainingText)
     }
     

@@ -67,6 +67,7 @@
 		83CEC36F24376D4A00188BF6 = {
 			isa = PBXGroup;
 			children = (
+				D6026811265F24B500F37DAE /* CoreDataModel */,
 				83CEC37A24376D4A00188BF6 /* MyMusic */,
 				83CEC37924376D4A00188BF6 /* Products */,
 				8CE7C52D4E2C6E289EEF528D /* Pods */,
@@ -110,6 +111,13 @@
 				8757AD54AEF68D65BC224901 /* Pods-MyMusic.release.xcconfig */,
 			);
 			path = Pods;
+			sourceTree = "<group>";
+		};
+		D6026811265F24B500F37DAE /* CoreDataModel */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = CoreDataModel;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
