@@ -112,24 +112,6 @@ class PlayerViewController: UIViewController, AVSpeechSynthesizerDelegate,UIScro
         
         
         do {
-            //            try AVAudioSession.sharedInstance().setMode(.default)
-            //            try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
-            //
-            //            guard let urlString = urlString else {
-            //                print("urlstring is nil")
-            //                return
-            //            }
-            //
-            //            player = try AVAudioPlayer(contentsOf: URL(string: urlString)!)
-            //
-            //            guard let player = player else {
-            //                print("player is nil")
-            //                return
-            //            }
-            //            player.volume = 0.5
-            //
-            //            player.play()
-            
             speechSynthesizer.speak(utterance)
         }
         catch {
@@ -220,7 +202,7 @@ class PlayerViewController: UIViewController, AVSpeechSynthesizerDelegate,UIScro
                                             width: holder.frame.size.width-40,
                                             height: 50))
         slider.value = 0.5
-        slider.addTarget(self, action: #selector(didSlideSlider(_:)), for: .valueChanged)
+        slider.addTarget(self, action: #selector(didSlideSlider(_:_:)), for: .valueChanged)
         holder.addSubview(slider)
     }
     
@@ -319,23 +301,36 @@ class PlayerViewController: UIViewController, AVSpeechSynthesizerDelegate,UIScro
         //        }
     }
     
-    @objc func didSlideSlider(_ slider: UISlider) {
+    @objc func didSlideSlider(_ slider: UISlider,_ event: UIEvent) {
         let value = slider.value
         print(slider.value)
-        //player?.volume = value
-//        speechSynthesizer.stopSpeaking(at: .immediate)
-        
-//        if currentRange.length > 0 {
-//            let startIndex = albumImageView.text!.index(albumImageView.text!.startIndex, offsetBy: NSMaxRange(currentRange))
-//            let newString = albumImageView.text!.substring(from: startIndex)
-//            albumImageView.text = newString
-//            utterance.postUtteranceDelay = 0.0
-//            utterance.preUtteranceDelay = 0.0
-//            speechSynthesizer.speak(utterance)
-//        }
+        if let touchEvent = event.allTouches?.first {
+                switch touchEvent.phase {
+                case .began:
+                    print("began")
+                case .moved:
+                    print("moved")
+                case .ended:
+                    speechSynthesizer.stopSpeaking(at: .immediate)
+                    
+                    if currentRange.length > 0 {
+                        utterance = AVSpeechUtterance(string: String(remainingText))
+                        //utterance.voice = AVSpeechSynthesisVoice(language: "zh-HK")
+                        utterance.voice = AVSpeechSynthesisVoice(identifier: "com.apple.ttsbundle.Sin-Ji-compact")
+                        utterance.pitchMultiplier = 1+slider.value
+                        utterance.rate = slider.value
+                        
+                        speechSynthesizer.speak(utterance)
+                    }
+                default:
+                    break
+                }
+            }
         rate = value
         
     }
+    
+    
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)

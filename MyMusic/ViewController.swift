@@ -180,14 +180,14 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         ]
     
         
-        AF.request("http://192.168.1.120:8443/authenticate", method: .post, parameters: parameters, encoding: JSONEncoding.default)
+        AF.request("http://192.168.31.221:8443/authenticate", method: .post, parameters: parameters, encoding: JSONEncoding.default)
             .responseDecodable(of: loginResults.self) { response in
                 guard let json = response.value, json.status == "success" else {
                     return
                 }
                 ProjectConfig.token = json.data!.token
                 let headers: HTTPHeaders = [.authorization(bearerToken: ProjectConfig.token)]
-                AF.request("http://192.168.1.120:8443/sync/allbook", method: .get, headers: headers)
+                AF.request("http://192.168.31.221:8443/sync/allbook", method: .get, headers: headers)
                     .responseDecodable(of: allBookResuls.self) { response in
                         guard let json = response.value, json.status == "success" else {
                             return
@@ -200,17 +200,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                         
                     }
             }
-        
-//        let headers: HTTPHeaders = [.authorization(bearerToken: ProjectConfig.token)]
-//        AF.request("http://192.168.1.120:8443/sync/allbook", method: .get, headers: headers)
-//            .responseDecodable(of: allBookResuls.self) { response in
-//                print(response.request?.allHTTPHeaderFields)
-//                guard let json = response.value, json.status == "success" else {
-//                    return
-//                }
-//                print("books", json.data)
-//            }
-    }
+        }
     
     func toReadingPage(index:Int){
         guard let vc = storyboard?.instantiateViewController(identifier: "player") as? PlayerViewController else {
